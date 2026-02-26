@@ -1,29 +1,24 @@
-# 🧠 Proyecto Red Neuronal
+# 🧠 Neural Network - Handwritten Digit Recognition
 
-Proyecto de red neuronal desarrollado por **Isaac Esteban Haro Torres**.
+Red neuronal para reconocimiento de dígitos escritos a mano (0-9) desarrollada por **Isaac Esteban Haro Torres**.
 
 ---
 
 ## 📝 Descripción
 
-Implementación de una red neuronal artificial para aprendizaje automático.
-
----
-
-## ✨ Características
-
-- Redes neuronales feedforward
-- Backpropagation
-- Funciones de activación
-- Entrenamiento con datasets
+Implementación de una red neuronal desde cero con:
+- 🧠 Arquitectura: 784 → 64 → 32 → 10
+- 🎨 Canvas para dibujar dígitos
+- ⚡ Entrenamiento en tiempo real
+- 📊 Visualización de la red y predicciones
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-- Python
-- TensorFlow / Keras
-- NumPy
+- HTML5
+- CSS3 (moderno y responsivo)
+- JavaScript (implementación propia de red neuronal)
 
 ---
 
