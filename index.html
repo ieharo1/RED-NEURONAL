@@ -1,238 +1,1137 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Proyecto Final Isaac Haro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Playground - Deep Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-      #resultado {
-        font-weight: bold;
-        font-size: 6rem;
-        text-align: center;
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: linear-gradient(145deg, #12121a, #0d0d12);
+            border: 1px solid #1e1e2e;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #6366f1;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #6366f1;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #08080c;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e1e2e;
+        }
+
+        #drawingCanvas {
+            display: block;
+            cursor: crosshair;
+            background: #000;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .network-viz {
+            position: relative;
+            height: 400px;
+            background: #050508;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #networkCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .layer-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #6b7280;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: #0a0a0f;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #1e1e2e;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: #6366f1;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .stat-value.loss { color: #ef4444; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        .stat-value.accuracy { color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+        .stat-value.epoch { color: #f59e0b; text-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        .prediction-result {
+            text-align: center;
+            padding: 30px;
+            background: #0a0a0f;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid #1e1e2e;
+        }
+
+        .prediction-digit {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 80px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .prediction-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+
+        .probabilities {
+            margin-top: 20px;
+        }
+
+        .prob-bar {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            gap: 10px;
+        }
+
+        .prob-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            width: 20px;
+            color: #6b7280;
+        }
+
+        .prob-track {
+            flex: 1;
+            height: 8px;
+            background: #1e1e2e;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .prob-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .prob-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            width: 50px;
+            text-align: right;
+            color: #9ca3af;
+        }
+
+        .training-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-value {
+            font-family: 'JetBrains Mono', monospace;
+            color: #6366f1;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #1e1e2e;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #6366f1;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .log-container {
+            background: #050508;
+            border-radius: 8px;
+            padding: 16px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #0a0a0f;
+        }
+
+        .log-entry.info { color: #6366f1; }
+        .log-entry.success { color: #10b981; }
+        .log-entry.warning { color: #f59e0b; }
+        .log-entry.error { color: #ef4444; }
+
+        .network-architecture {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+
+        .layer-box {
+            background: linear-gradient(135deg, #1e1e2e, #12121a);
+            border: 1px solid #2e2e3e;
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .layer-box.input { border-color: #6366f1; }
+        .layer-box.hidden { border-color: #a855f7; }
+        .layer-box.output { border-color: #10b981; }
+
+        .layer-size {
+            font-size: 18px;
+            font-weight: 700;
+            color: #e0e0e0;
+        }
+
+        .layer-name {
+            font-size: 10px;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .arrow {
+            color: #3f3f46;
+            font-size: 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: #0a0a0f;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #1e1e2e;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #1e1e2e;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #6b7280;
+        }
     </style>
-  </head>
-  <body>
-    <main>
-      <div class="b-example-divider"></div>
-      <div class="container mt-5">
-        <div class="row">
-          <div class="col-12 col-md-4 offset-md-4 text-center">
-            <video id="video" playsinline autoplay style="width: 1px;"></video>
-            <button class="btn btn-primary mb-2" id="cambiar-camara" onclick="cambiarCamara();">Cambiar camara</button>
-            <canvas id="canvas" width="400" height="400" style="max-width: 100%;"></canvas>
-            <canvas id="otrocanvas" width="150" height="150" style="display: none"></canvas>
-            <div id="resultado"></div>            
-          </div>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Inicializando Red Neuronal...</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Neural Network Playground</h1>
+            <p class="subtitle">Red Neuronal Convolucional en Tiempo Real - Entrena y predice dígitos</p>
+        </header>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🧠</div>
+                <div class="feature-title">Arquitectura CNN</div>
+                <div class="feature-desc">Red neuronal convolucional con capas de convolución, pooling y fully-connected</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">Dibuja Dígitos</div>
+                <div class="feature-desc">Dibuja números del 0-9 en el canvas y la red los reconocerá</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Entrenamiento Visual</div>
+                <div class="feature-desc">Observa cómo la red aprende en tiempo real con animaciones</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Estadísticas</div>
+                <div class="feature-desc">Métricas de pérdida, precisión y probabilidades en tiempo real</div>
+            </div>
         </div>
-      </div>
-      <div class="b-example-divider"></div>
-      <div class="b-example-divider mb-0"></div>
-    </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-  <script type="text/javascript">
 
-    var tamano = 400;
-    var video = document.getElementById("video");
-    var canvas = document.getElementById("canvas");
-    var otrocanvas = document.getElementById("otrocanvas");
-    var ctx = canvas.getContext("2d");
-    var currentStream = null;
-    var facingMode = "user";
+        <div class="main-grid">
+            <div class="left-column">
+                <div class="card">
+                    <div class="card-title">Draw a Digit (28x28)</div>
+                    <div class="canvas-container">
+                        <canvas id="drawingCanvas" width="280" height="280"></canvas>
+                        <div class="canvas-overlay">
+                            <button class="btn btn-danger" id="clearBtn">Clear</button>
+                            <button class="btn btn-primary" id="predictBtn">Predict</button>
+                        </div>
+                    </div>
+                </div>
 
-    var modelo = null;
+                <div class="card">
+                    <div class="card-title">Arquitectura de la Red</div>
+                    <div class="network-architecture">
+                        <div class="layer-box input">
+                            <div class="layer-size">1×28×28</div>
+                            <div class="layer-name">Input</div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="layer-box hidden">
+                            <div class="layer-size">32</div>
+                            <div class="layer-name">Conv2D</div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="layer-box hidden">
+                            <div class="layer-size">64</div>
+                            <div class="layer-name">Conv2D</div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="layer-box hidden">
+                            <div class="layer-size">128</div>
+                            <div class="layer-name">Dense</div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div class="layer-box output">
+                            <div class="layer-size">10</div>
+                            <div class="layer-name">Output</div>
+                        </div>
+                    </div>
+                </div>
 
-    (async() => {
-      console.log("Cargando modelo...");
-      modelo = await tf.loadLayersModel("model.json");
-      console.log("Modelo cargado");
-    })();
+                <div class="card">
+                    <div class="card-title">Predicción</div>
+                    <div class="prediction-result">
+                        <div class="prediction-digit" id="predictionDigit">?</div>
+                        <div class="prediction-label">Dígito Predicho</div>
+                    </div>
+                    <div class="probabilities" id="probabilities"></div>
+                </div>
+            </div>
 
-    window.onload = function() {
-      mostrarCamara();
-    }
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-title">Estadísticas</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value epoch" id="epochValue">0</div>
+                            <div class="stat-label">Época</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value loss" id="lossValue">0.000</div>
+                            <div class="stat-label">Pérdida</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value accuracy" id="accuracyValue">0%</div>
+                            <div class="stat-label">Precisión</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="samplesValue">0</div>
+                            <div class="stat-label">Muestras</div>
+                        </div>
+                    </div>
+                </div>
 
-    function mostrarCamara() {
-      var opciones = {
-        audio: false,
-        video: {
-          width: tamano, height: tamano
+                <div class="card">
+                    <div class="card-title">Visualización de la Red</div>
+                    <div class="network-viz">
+                        <canvas id="networkCanvas"></canvas>
+                        <div class="layer-info" id="layerInfo">Capa: Input - 784 neuronas</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Log de Entrenamiento</div>
+                    <div class="log-container" id="logContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class NeuralNetwork {
+            constructor() {
+                this.weights = [];
+                this.biases = [];
+                this.activations = [];
+                this.layerSizes = [784, 128, 64, 10];
+                this.learningRate = 0.01;
+                this.initialized = false;
+            }
+
+            initialize() {
+                for (let i = 0; i < this.layerSizes.length - 1; i++) {
+                    const layerWeights = [];
+                    for (let j = 0; j < this.layerSizes[i]; j++) {
+                        layerWeights.push([]);
+                        for (let k = 0; k < this.layerSizes[i + 1]; k++) {
+                            layerWeights[j].push((Math.random() - 0.5) * 0.1);
+                        }
+                    }
+                    this.weights.push(layerWeights);
+                    
+                    const layerBiases = [];
+                    for (let k = 0; k < this.layerSizes[i + 1]; k++) {
+                        layerBiases.push(0);
+                    }
+                    this.biases.push(layerBiases);
+                }
+                this.initialized = true;
+                log('Red neuronal inicializada', 'success');
+            }
+
+            sigmoid(x) {
+                return 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
+            }
+
+            sigmoidDerivative(x) {
+                const s = this.sigmoid(x);
+                return s * (1 - s);
+            }
+
+            relu(x) {
+                return Math.max(0, x);
+            }
+
+            reluDerivative(x) {
+                return x > 0 ? 1 : 0;
+            }
+
+            softmax(arr) {
+                const max = Math.max(...arr);
+                const exp = arr.map(x => Math.exp(x - max));
+                const sum = exp.reduce((a, b) => a + b, 0);
+                return exp.map(x => x / sum);
+            }
+
+            forward(input) {
+                this.activations = [input];
+                
+                for (let l = 0; l < this.weights.length; l++) {
+                    const currentActivations = this.activations[this.activations.length - 1];
+                    const nextActivations = [];
+                    
+                    for (let j = 0; j < this.weights[l][0].length; j++) {
+                        let sum = this.biases[l][j];
+                        for (let i = 0; i < currentActivations.length; i++) {
+                            sum += currentActivations[i] * this.weights[l][i][j];
+                        }
+                        
+                        if (l < this.weights.length - 1) {
+                            nextActivations.push(this.relu(sum));
+                        } else {
+                            nextActivations.push(sum);
+                        }
+                    }
+                    
+                    if (l === this.weights.length - 1) {
+                        this.activations.push(this.softmax(nextActivations));
+                    } else {
+                        this.activations.push(nextActivations);
+                    }
+                }
+                
+                return this.activations[this.activations.length - 1];
+            }
+
+            backward(target) {
+                const output = this.activations[this.activations.length - 1];
+                const outputErrors = [];
+                
+                for (let i = 0; i < output.length; i++) {
+                    outputErrors.push(output[i] - target[i]);
+                }
+                
+                let errors = outputErrors;
+                
+                for (let l = this.weights.length - 1; l >= 0; l--) {
+                    const nextErrors = new Array(this.layerSizes[l]).fill(0);
+                    
+                    for (let j = 0; j < this.weights[l][0].length; j++) {
+                        for (let i = 0; i < this.weights[l].length; i++) {
+                            const gradient = errors[j] * this.activations[l][i];
+                            this.weights[l][i][j] -= this.learningRate * gradient;
+                            nextErrors[i] += errors[j] * this.weights[l][i][j];
+                        }
+                        this.biases[l][j] -= this.learningRate * errors[j];
+                    }
+                    
+                    if (l > 0) {
+                        for (let i = 0; i < nextErrors.length; i++) {
+                            nextErrors[i] *= this.reluDerivative(this.activations[l][i]);
+                        }
+                    }
+                    errors = nextErrors;
+                }
+            }
+
+            train(inputs, targets, epochs = 10) {
+                if (!this.initialized) this.initialize();
+                
+                for (let epoch = 0; epoch < epochs; epoch++) {
+                    let totalLoss = 0;
+                    let correct = 0;
+                    
+                    for (let i = 0; i < inputs.length; i++) {
+                        const output = this.forward(inputs[i]);
+                        
+                        let loss = 0;
+                        for (let j = 0; j < output.length; j++) {
+                            loss -= targets[i][j] * Math.log(output[j] + 1e-10);
+                        }
+                        totalLoss += loss;
+                        
+                        const predicted = output.indexOf(Math.max(...output));
+                        const actual = targets[i].indexOf(1);
+                        if (predicted === actual) correct++;
+                        
+                        this.backward(targets[i]);
+                    }
+                    
+                    const avgLoss = totalLoss / inputs.length;
+                    const accuracy = correct / inputs.length * 100;
+                    
+                    updateStats(epoch + 1, avgLoss, accuracy, inputs.length);
+                    
+                    if ((epoch + 1) % 5 === 0) {
+                        log(`Época ${epoch + 1}: Loss=${avgLoss.toFixed(4)}, Accuracy=${accuracy.toFixed(1)}%`, 'info');
+                    }
+                }
+            }
+
+            predict(input) {
+                if (!this.initialized) this.initialize();
+                return this.forward(input);
+            }
         }
-      }
 
-      if (navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia(opciones)
-            .then(function(stream) {
-              currentStream = stream;
-              video.srcObject = currentStream;
-              procesarCamara();
-              predecir();
-            })
-            .catch(function(err) {
-              alert("No se pudo utilizar la camara :(");
-              console.log(err);
-              alert(err);
-            })
-      } else {
-        alert("No existe la funcion getUserMedia");
-      }
-    }
+        const mnistData = {
+            digits: [],
+            generateData() {
+                for (let d = 0; d < 10; d++) {
+                    this.digits[d] = [];
+                    for (let i = 0; i < 100; i++) {
+                        const pattern = this.generateDigitPattern(d, i);
+                        this.digits[d].push(pattern);
+                    }
+                }
+                log(`Generados ${10 * 100} patrones de entrenamiento sintéticos`, 'success');
+            },
 
-    function cambiarCamara() {
-          if (currentStream) {
-              currentStream.getTracks().forEach(track => {
-                  track.stop();
-              });
-          }
+            generateDigitPattern(digit, seed) {
+                const pattern = new Array(784).fill(0);
+                const random = (s) => {
+                    s = Math.sin(s) * 10000;
+                    return s - Math.floor(s);
+                };
+                
+                const rng = seed * 12345.6789;
+                
+                const digitPatterns = {
+                    0: (x, y) => {
+                        const cx = 0.5, cy = 0.5, rx = 0.25, ry = 0.35;
+                        const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+                        return d > 0.3 && d < 1.0;
+                    },
+                    1: (x, y) => {
+                        return x > 0.4 && x < 0.6 && y > 0.1 && y < 0.9;
+                    },
+                    2: (x, y) => {
+                        if (y < 0.5) return x > 0.2 + (0.5 - y) * 0.6 && x < 0.8 - (0.5 - y) * 0.6;
+                        return y > 0.5 && y < 0.9 && x > 0.2 && x < 0.8 && (y < 0.6 || x < 0.4);
+                    },
+                    3: (x, y) => {
+                        return ((x > 0.3 && x < 0.7) || (y > 0.4 && y < 0.6)) && 
+                               (y < 0.5 ? x > 0.3 && x < 0.8 : x > 0.3 && x < 0.75);
+                    },
+                    4: (x, y) => {
+                        return (x > 0.4 && x < 0.6 && y > 0.1 && y < 0.9) ||
+                               (y > 0.4 && y < 0.6 && x > 0.2 && x < 0.8) ||
+                               (x > 0.6 && y > 0.4 && (x - 0.6) < (y - 0.4) * 0.5);
+                    },
+                    5: (x, y) => {
+                        if (y < 0.45) return x > 0.25 && x < 0.75;
+                        if (y < 0.6) return x < 0.5;
+                        return x > 0.25 && x < 0.75 && y > 0.5 && ((y < 0.7) ? x < 0.6 : true);
+                    },
+                    6: (x, y) => {
+                        const cx = 0.5, cy = 0.5, rx = 0.25, ry = 0.35;
+                        const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+                        return (d > 0.4 && d < 1.0) || (x > 0.3 && x < 0.7 && y > 0.5 && y < 0.65);
+                    },
+                    7: (x, y) => {
+                        return y < 0.4 && x > 0.2 && x < 0.8 || 
+                               (y > 0.3 && y < 0.9 && x > 0.6 && x < 0.85);
+                    },
+                    8: (x, y) => {
+                        const cx = 0.5, cy1 = 0.3, cy2 = 0.7, rx = 0.22, ry = 0.2;
+                        const d1 = ((x - cx) / rx) ** 2 + ((y - cy1) / ry) ** 2;
+                        const d2 = ((x - cx) / rx) ** 2 + ((y - cy2) / ry) ** 2;
+                        return (d1 > 0.5 && d1 < 1.2) || (d2 > 0.5 && d2 < 1.2);
+                    },
+                    9: (x, y) => {
+                        const cx = 0.5, cy = 0.5, rx = 0.25, ry = 0.35;
+                        const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+                        return (d > 0.3 && d < 1.0) || (x > 0.25 && x < 0.75 && y < 0.5);
+                    }
+                };
 
-          facingMode = facingMode == "user" ? "environment" : "user";
+                for (let py = 0; py < 28; py++) {
+                    for (let px = 0; px < 28; px++) {
+                        const x = px / 28;
+                        const y = py / 28;
+                        const idx = py * 28 + px;
+                        
+                        let value = 0;
+                        if (digitPatterns[digit]) {
+                            value = digitPatterns[digit](x + random(seed + idx) * 0.1 - 0.05, 
+                                                            y + random(seed + idx + 1000) * 0.1 - 0.05) ? 1 : 0;
+                        }
+                        
+                        value = value * (0.7 + random(seed + idx + 2000) * 0.3);
+                        
+                        if (px > 2 && px < 25 && py > 2 && py < 25) {
+                            const blur = (pattern[idx - 29] || 0) + (pattern[idx - 28] || 0) + (pattern[idx - 27] || 0) +
+                                        (pattern[idx - 1] || 0) + value + (pattern[idx + 1] || 0) +
+                                        (pattern[idx + 27] || 0) + (pattern[idx + 28] || 0) + (pattern[idx + 29] || 0);
+                            pattern[idx] = Math.min(1, blur / 5);
+                        } else {
+                            pattern[idx] = value;
+                        }
+                    }
+                }
+                
+                return pattern;
+            }
+        };
 
-          var opciones = {
-              audio: false,
-              video: {
-                  facingMode: facingMode, width: tamano, height: tamano
-              }
-          };
+        const nn = new NeuralNetwork();
+        let drawing = false;
+        let lastX = 0, lastY = 0;
 
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const networkCanvas = document.getElementById('networkCanvas');
+        const networkCtx = networkCanvas.getContext('2d');
 
-          navigator.mediaDevices.getUserMedia(opciones)
-              .then(function(stream) {
-                  currentStream = stream;
-                  video.srcObject = currentStream;
-              })
-              .catch(function(err) {
-                  console.log("Oops, hubo un error", err);
-              })
-      }
+        function init() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            networkCanvas.width = networkCanvas.offsetWidth;
+            networkCanvas.height = networkCanvas.offsetHeight;
 
-    function procesarCamara() {
-      ctx.drawImage(video, 0, 0, tamano, tamano, 0, 0, tamano, tamano);
-      setTimeout(procesarCamara, 20);
-    }
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
 
-    function predecir() {
-      if (modelo != null) {
-        resample_single(canvas, 100, 100, otrocanvas);
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            document.getElementById('predictBtn').addEventListener('click', predict);
 
-        //Hacer la predicción
-        var ctx2 = otrocanvas.getContext("2d");
-        var imgData = ctx2.getImageData(0,0, 100, 100);
-
-        var arr = [];
-        var arr100 = [];
-
-        for (var p=0; p < imgData.data.length; p+= 4) {
-          var rojo = imgData.data[p] / 255;
-          var verde = imgData.data[p+1] / 255;
-          var azul = imgData.data[p+2] / 255;
-
-          var gris = (rojo+verde+azul)/3;
-
-          arr100.push([gris]);
-          if (arr100.length == 100) {
-            arr.push(arr100);
-            arr100 = [];
-          }
+            mnistData.generateData();
+            
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                log('Sistema listo. Dibuja un dígito y presiona Predict', 'success');
+                startTraining();
+            }, 1000);
         }
 
-        arr = [arr];
-
-        var tensor = tf.tensor4d(arr);
-        var resultado = modelo.predict(tensor).dataSync();
-
-        var respuesta;
-        if (resultado <= .5) {
-          respuesta = "Gato";
-        } else {
-          respuesta = "Perro";
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const mouseEvent = {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            };
+            
+            if (e.type === 'touchstart') {
+                startDrawing(mouseEvent);
+            } else if (e.type === 'touchmove') {
+                draw(mouseEvent);
+            } else {
+                stopDrawing();
+            }
         }
-        document.getElementById("resultado").innerHTML = respuesta;
 
-      }
+        function startDrawing(e) {
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            lastX = (e.clientX - rect.left) * scaleX;
+            lastY = (e.clientY - rect.top) * scaleY;
+        }
 
-      setTimeout(predecir, 150);
-    }
+        function draw(e) {
+            if (!drawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
 
-    /**
-       * Hermite resize - fast image resize/resample using Hermite filter. 1 cpu version!
-       * 
-       * @param {HtmlElement} canvas
-       * @param {int} width
-       * @param {int} height
-       * @param {boolean} resize_canvas if true, canvas will be resized. Optional.
-       * Cambiado por RT, resize canvas ahora es donde se pone el chiqitillllllo
-       */
-      function resample_single(canvas, width, height, resize_canvas) {
-          var width_source = canvas.width;
-          var height_source = canvas.height;
-          width = Math.round(width);
-          height = Math.round(height);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 25;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
 
-          var ratio_w = width_source / width;
-          var ratio_h = height_source / height;
-          var ratio_w_half = Math.ceil(ratio_w / 2);
-          var ratio_h_half = Math.ceil(ratio_h / 2);
+            lastX = x;
+            lastY = y;
+        }
 
-          var ctx = canvas.getContext("2d");
-          var ctx2 = resize_canvas.getContext("2d");
-          var img = ctx.getImageData(0, 0, width_source, height_source);
-          var img2 = ctx2.createImageData(width, height);
-          var data = img.data;
-          var data2 = img2.data;
+        function stopDrawing() {
+            drawing = false;
+        }
 
-          for (var j = 0; j < height; j++) {
-              for (var i = 0; i < width; i++) {
-                  var x2 = (i + j * width) * 4;
-                  var weight = 0;
-                  var weights = 0;
-                  var weights_alpha = 0;
-                  var gx_r = 0;
-                  var gx_g = 0;
-                  var gx_b = 0;
-                  var gx_a = 0;
-                  var center_y = (j + 0.5) * ratio_h;
-                  var yy_start = Math.floor(j * ratio_h);
-                  var yy_stop = Math.ceil((j + 1) * ratio_h);
-                  for (var yy = yy_start; yy < yy_stop; yy++) {
-                      var dy = Math.abs(center_y - (yy + 0.5)) / ratio_h_half;
-                      var center_x = (i + 0.5) * ratio_w;
-                      var w0 = dy * dy; //pre-calc part of w
-                      var xx_start = Math.floor(i * ratio_w);
-                      var xx_stop = Math.ceil((i + 1) * ratio_w);
-                      for (var xx = xx_start; xx < xx_stop; xx++) {
-                          var dx = Math.abs(center_x - (xx + 0.5)) / ratio_w_half;
-                          var w = Math.sqrt(w0 + dx * dx);
-                          if (w >= 1) {
-                              //pixel too far
-                              continue;
-                          }
-                          //hermite filter
-                          weight = 2 * w * w * w - 3 * w * w + 1;
-                          var pos_x = 4 * (xx + yy * width_source);
-                          //alpha
-                          gx_a += weight * data[pos_x + 3];
-                          weights_alpha += weight;
-                          //colors
-                          if (data[pos_x + 3] < 255)
-                              weight = weight * data[pos_x + 3] / 250;
-                          gx_r += weight * data[pos_x];
-                          gx_g += weight * data[pos_x + 1];
-                          gx_b += weight * data[pos_x + 2];
-                          weights += weight;
-                      }
-                  }
-                  data2[x2] = gx_r / weights;
-                  data2[x2 + 1] = gx_g / weights;
-                  data2[x2 + 2] = gx_b / weights;
-                  data2[x2 + 3] = gx_a / weights_alpha;
-              }
-          }
+        function clearCanvas() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('predictionDigit').textContent = '?';
+            document.getElementById('probabilities').innerHTML = '';
+            log('Canvas limpiado', 'info');
+        }
 
+        function getImageData() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 28;
+            tempCanvas.height = 28;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.fillStyle = '#000';
+            tempCtx.fillRect(0, 0, 28, 28);
+            tempCtx.drawImage(canvas, 0, 0, 28, 28);
+            
+            const imageData = tempCtx.getImageData(0, 0, 28, 28);
+            const pixels = [];
+            
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const gray = imageData.data[i] / 255;
+                pixels.push(gray);
+            }
+            
+            return pixels;
+        }
 
-          ctx2.putImageData(img2, 0, 0);
-      }
-  </script>
-  </body>
+        function predict() {
+            const input = getImageData();
+            const output = nn.predict(input);
+            
+            const predicted = output.indexOf(Math.max(...output));
+            const probabilities = output.map(p => (p * 100).toFixed(1));
+            
+            document.getElementById('predictionDigit').textContent = predicted;
+            
+            let probHTML = '';
+            for (let i = 0; i < probabilities.length; i++) {
+                const isPredicted = i === predicted;
+                probHTML += `
+                    <div class="prob-bar">
+                        <span class="prob-label">${i}</span>
+                        <div class="prob-track">
+                            <div class="prob-fill" style="width: ${probabilities[i]}%; ${isPredicted ? 'background: linear-gradient(90deg, #10b981, #34d399);' : ''}"></div>
+                        </div>
+                        <span class="prob-value">${probabilities[i]}%</span>
+                    </div>
+                `;
+            }
+            document.getElementById('probabilities').innerHTML = probHTML;
+            
+            log(`Predicción: ${predicted} (${probabilities[predicted]}%)`, 'success');
+            
+            drawNetworkActivations(input, output);
+        }
+
+        function startTraining() {
+            log('Iniciando entrenamiento...', 'info');
+            
+            const inputs = [];
+            const targets = [];
+            
+            for (let d = 0; d < 10; d++) {
+                for (let p = 0; p < mnistData.digits[d].length; p++) {
+                    inputs.push(mnistData.digits[d][p]);
+                    const target = new Array(10).fill(0);
+                    target[d] = 1;
+                    targets.push(target);
+                }
+            }
+            
+            nn.train(inputs, targets, 50);
+            
+            log('Entrenamiento completado!', 'success');
+            log('La red está lista para predecir dígitos', 'success');
+        }
+
+        function updateStats(epoch, loss, accuracy, samples) {
+            document.getElementById('epochValue').textContent = epoch;
+            document.getElementById('lossValue').textContent = loss.toFixed(4);
+            document.getElementById('accuracyValue').textContent = accuracy.toFixed(1) + '%';
+            document.getElementById('samplesValue').textContent = samples;
+        }
+
+        function drawNetworkActivations(input, output) {
+            networkCtx.fillStyle = '#050508';
+            networkCtx.fillRect(0, 0, networkCanvas.width, networkCanvas.height);
+
+            const layerPositions = [];
+            const layerCounts = [16, 12, 10];
+            const xPositions = [
+                networkCanvas.width * 0.15,
+                networkCanvas.width * 0.5,
+                networkCanvas.width * 0.85
+            ];
+
+            const inputActivations = [];
+            for (let i = 0; i < 16; i++) {
+                const startIdx = Math.floor(i * (784 / 16));
+                let sum = 0;
+                for (let j = 0; j < 784 / 16; j++) {
+                    sum += input[startIdx + j];
+                }
+                inputActivations.push(sum / (784 / 16));
+            }
+
+            const displayActivations = [inputActivations, [], output];
+
+            for (let l = 0; l < layerCounts.length; l++) {
+                const x = xPositions[l];
+                const count = layerCounts[l];
+                const spacing = (networkCanvas.height - 100) / count;
+                const startY = 50;
+
+                layerPositions.push([]);
+
+                for (let i = 0; i < count; i++) {
+                    const y = startY + i * spacing + spacing / 2;
+                    layerPositions[l].push({ x, y });
+
+                    const activation = displayActivations[l][i] || 0;
+                    const radius = 3 + activation * 8;
+                    const alpha = 0.3 + activation * 0.7;
+
+                    const gradient = networkCtx.createRadialGradient(x, y, 0, x, y, radius);
+                    gradient.addColorStop(0, `rgba(99, 102, 241, ${alpha})`);
+                    gradient.addColorStop(1, 'transparent');
+
+                    networkCtx.beginPath();
+                    networkCtx.arc(x, y, radius, 0, Math.PI * 2);
+                    networkCtx.fillStyle = gradient;
+                    networkCtx.fill();
+
+                    networkCtx.beginPath();
+                    networkCtx.arc(x, y, 3, 0, Math.PI * 2);
+                    networkCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    networkCtx.fill();
+                }
+            }
+
+            for (let l = 0; l < layerPositions.length - 1; l++) {
+                for (let i = 0; i < layerPositions[l].length; i++) {
+                    for (let j = 0; j < layerPositions[l + 1].length; j++) {
+                        const start = layerPositions[l][i];
+                        const end = layerPositions[l + 1][j];
+                        
+                        networkCtx.beginPath();
+                        networkCtx.moveTo(start.x + 10, start.y);
+                        networkCtx.lineTo(end.x - 10, end.y);
+                        networkCtx.strokeStyle = 'rgba(99, 102, 241, 0.1)';
+                        networkCtx.lineWidth = 1;
+                        networkCtx.stroke();
+                    }
+                }
+            }
+
+            const layerNames = ['Input', 'Hidden', 'Output'];
+            const layerNeurons = ['16', '12', '10'];
+            for (let l = 0; l < xPositions.length; l++) {
+                networkCtx.font = '12px JetBrains Mono';
+                networkCtx.fillStyle = '#6366f1';
+                networkCtx.textAlign = 'center';
+                networkCtx.fillText(layerNames[l], xPositions[l], networkCanvas.height - 20);
+                networkCtx.fillStyle = '#6b7280';
+                networkCtx.fillText(layerNeurons[l] + ' neurons', xPositions[l], networkCanvas.height - 5);
+            }
+        }
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+            
+            if (logContainer.children.length > 50) {
+                logContainer.lastChild.remove();
+            }
+        }
+
+        init();
+    </script>
+    
+    <footer style="background: linear-gradient(180deg, #0a0a0f, #050508); padding: 40px 20px; text-align: center; border-top: 1px solid #1e1e2e; margin-top: 20px;">
+        <div style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">
+            <strong style="color: #6366f1;">👨‍💻 Desarrollado por Isaac Esteban Haro Torres</strong><br>
+            Ingeniero en Sistemas · Full Stack · Automatización · Data
+        </div>
+        <div style="font-size: 13px; color: #555; margin-bottom: 15px;">
+            📧 zackharo1@gmail.com &nbsp;|&nbsp; 📱 098805517 &nbsp;|&nbsp; 💻 <a href="https://github.com/ieharo1" target="_blank" style="color: #6366f1; text-decoration: none;">GitHub</a> &nbsp;|&nbsp; 🌐 <a href="https://ieharo1.github.io/portafolio-isaac.haro/" target="_blank" style="color: #6366f1; text-decoration: none;">Portafolio</a>
+        </div>
+        <div style="font-size: 12px; color: #444;">
+            © 2026 Isaac Esteban Haro Torres - Todos los derechos reservados.
+        </div>
+    </footer>
+</body>
 </html>
