@@ -1,4 +1,4 @@
-# 🧠 Neural Network - Handwritten Digit Recognition
+# 🧠 Red Neuronal
 
 Red neuronal para reconocimiento de dígitos escritos a mano (0-9) desarrollada por **Isaac Esteban Haro Torres**.
 
